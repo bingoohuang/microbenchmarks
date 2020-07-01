@@ -3,7 +3,6 @@ package com.github.bingoohuang.bench;
 import lombok.val;
 import org.bjca.pki.module.provider.FishmanProvider;
 import org.ca.engine.sdk.api.CaService;
-import org.ca.engine.sdk.beans.Certification;
 import org.ca.engine.sdk.exception.CaServiceException;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
@@ -29,13 +28,27 @@ public class CaServiceBench {
     caService.init(new FishmanProvider());
   }
 
-  @Threads(30)
+  @Threads(24)
   @Benchmark
-  public void local() throws CaServiceException {
-    Certification cert = caService.certRequest(p10, "bjca2", "sm2.xml");
+  public void singleLocal() throws CaServiceException {
+    caService.certRequest(p10, "bjca2", "sm2.xml");
   }
 
-  @Threads(30)
+  public static final ThreadLocal<CaService> caServiceLocal =
+      ThreadLocal.withInitial(
+          () -> {
+            CaService cs = new CaService();
+            cs.init(new FishmanProvider());
+            return cs;
+          });
+
+  @Threads(24)
+  @Benchmark
+  public void threadLocal() throws CaServiceException {
+    caServiceLocal.get().certRequest(p10, "bjca2", "sm2.xml");
+  }
+
+  @Threads(24)
   @Benchmark
   public void httpTomcat() {
     HttpRest rest = new HttpRest();
@@ -44,13 +57,22 @@ public class CaServiceBench {
     rest.post("http://127.0.0.1:8088/fishman/cert/signCert", params);
   }
 
-  @Threads(30)
+  @Threads(24)
   @Benchmark
-  public void httpSpringboot() {
+  public void httpSpringbootStatic() {
     HttpRest rest = new HttpRest();
     val params = new HashMap<String, String>();
     params.put("p10", p10);
-    rest.post("http://127.0.0.1:8083", params);
+    rest.post("http://127.0.0.1:8083/static", params);
+  }
+
+  @Threads(24)
+  @Benchmark
+  public void httpSpringbootEmpty() {
+    HttpRest rest = new HttpRest();
+    val params = new HashMap<String, String>();
+    params.put("p10", p10);
+    rest.post("http://127.0.0.1:8083/empty", params);
   }
 
   public static void main(String[] args) throws RunnerException {
