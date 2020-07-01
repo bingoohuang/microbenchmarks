@@ -5,6 +5,7 @@ import org.bjca.pki.module.provider.FishmanProvider;
 import org.ca.engine.sdk.api.CaService;
 import org.ca.engine.sdk.exception.CaServiceException;
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -30,8 +31,8 @@ public class CaServiceBench {
 
   @Threads(24)
   @Benchmark
-  public void singleLocal() throws CaServiceException {
-    caService.certRequest(p10, "bjca2", "sm2.xml");
+  public void singleLocal(Blackhole blackhole) throws CaServiceException {
+    blackhole.consume(caService.certRequest(p10, "bjca2", "sm2.xml"));
   }
 
   public static final ThreadLocal<CaService> caServiceLocal =
@@ -44,35 +45,35 @@ public class CaServiceBench {
 
   @Threads(24)
   @Benchmark
-  public void threadLocal() throws CaServiceException {
-    caServiceLocal.get().certRequest(p10, "bjca2", "sm2.xml");
+  public void threadLocal(Blackhole blackhole) throws CaServiceException {
+    blackhole.consume(caServiceLocal.get().certRequest(p10, "bjca2", "sm2.xml"));
   }
 
   @Threads(24)
   @Benchmark
-  public void httpTomcat() {
+  public void httpTomcat(Blackhole blackhole) {
     HttpRest rest = new HttpRest();
     val params = new HashMap<String, String>();
     params.put("p10", p10);
-    rest.post("http://127.0.0.1:8088/fishman/cert/signCert", params);
+    blackhole.consume(rest.post("http://127.0.0.1:8088/fishman/cert/signCert", params));
   }
 
   @Threads(24)
   @Benchmark
-  public void httpSpringbootStatic() {
+  public void httpSpringbootStatic(Blackhole blackhole) {
     HttpRest rest = new HttpRest();
     val params = new HashMap<String, String>();
     params.put("p10", p10);
-    rest.post("http://127.0.0.1:8083/static", params);
+    blackhole.consume(rest.post("http://127.0.0.1:8083/static", params));
   }
 
   @Threads(24)
   @Benchmark
-  public void httpSpringbootEmpty() {
+  public void httpSpringbootEmpty(Blackhole blackhole) {
     HttpRest rest = new HttpRest();
     val params = new HashMap<String, String>();
     params.put("p10", p10);
-    rest.post("http://127.0.0.1:8083/empty", params);
+    blackhole.consume(rest.post("http://127.0.0.1:8083/empty", params));
   }
 
   public static void main(String[] args) throws RunnerException {
