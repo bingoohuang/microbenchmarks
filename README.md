@@ -8,5 +8,7 @@
 1. [lemire/microbenchmarks](https://github.com/lemire/microbenchmarks)
 1. [JMH benchmark with examples](https://javadevcentral.com/jmh-benchmark-with-examples)
 1. [jmh-tutorial](https://github.com/guozheng/jmh-tutorial/blob/master/README.md)
-    `java -jar target/benchmarks.jar #default behavior -wi 20 -i 20 -f 10`
-    `java -jar target/benchmarks.jar -wi 5 -i 5 -f 1`
+    ```bash
+    java -jar target/benchmarks.jar #default behavior -wi 20 -i 20 -f 10
+    java -jar target/benchmarks.jar -wi 5 -i 5 -f 1
+    ```
